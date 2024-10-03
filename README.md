@@ -47,11 +47,11 @@ python3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --
 ### Dependencies
 
 Its always advisable to use a Virtual Environment.<br />
-- Bio==1.6.2<br />
+- Bio=1.6.2<br />
 - biopython=1.83<br />
 - pandas=2.0.3<br />
-- Requests==2.28.1<br />
-- selenium==4.4.0<br />
+- Requests=2.28.1<br />
+- selenium=4.4.0<br />
 - webdriver_manager=4.0.2<br />
 
 **[Windows]**
