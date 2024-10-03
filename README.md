@@ -65,7 +65,7 @@ pip install -r requirements.txt
 
 **[MAC]**
 <br />
-python -m venv venv<br />
+python3 -m venv venv<br />
 source venv/bin/activate<br />
 pip3 install -r requirements.txt<br />
 
