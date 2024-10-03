@@ -15,12 +15,12 @@ The script contains a -h or --Help with instructions and descriptions for the ar
 <br />
 E.g.
 (original fasta file)
-> IMCJ_KR020_1 
+>IMCJ_KR020_1 
 tggcgcccgaacagggacttgaggaagagtgagagtcttcggagcacggctgagtgagggcagtaagggcggcaggaatc
 aaccacgacggagagctcctgtaaaagcgcaggccggtaccaggcagcgtgaggagcgggaggagaagaggcctccggga
 
 (new fasta file)
-> B.IMCJ_KR020_1 
+>B.IMCJ_KR020_1 
 tggcgcccgaacagggacttgaggaagagtgagagtcttcggagcacggctgagtgagggcagtaagggcggcaggaatc
 aaccacgacggagagctcctgtaaaagcgcaggccggtaccaggcagcgtgaggagcgggaggagaagaggcctccggga
 <br />
@@ -45,5 +45,27 @@ python typing_using_comet.py --hiv_type 1 --fasta_file unknown_seqs.fasta --outp
 python3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --output_directory C:\Users\results --output_type csv --disable_auto_rename Y
 
 ### Dependencies
-- needs to be filled
+
+Its always advisable to use a Virtual Environment.<br />
+- Bio=1.7.1<br />
+- biopython=1.83<br />
+- pandas=1.4.4<br />
+- pandas=1.5.3<br />
+- pandas=2.0.3<br />
+- Requests=2.32.3<br />
+- selenium=3.141.0<br />
+- webdriver_manager=4.0.2<br />
+
+
+**[Windows]**
+<br />
+python -m venv venv<br />
+venv\Scripts\activate<br />
+pip install -r requirements.txt
+
+**[MAC]**
+<br />
+python -m venv venv<br />
+source venv/bin/activate<br />
+pip3 install -r requirements.txt<br />
 
