@@ -25,24 +25,28 @@ tggcgcccgaacagggacttgaggaagagtgagagtcttcggagcacggctgagtgagggcagtaagggcggcaggaatc
 aaccacgacggagagctcctgtaaaagcgcaggccggtaccaggcagcgtgaggagcgggaggagaagaggcctccggga
 <br />
 
-It has the following arguments:
+It has the following mandatory arguments:
 - **--hiv_type**: specify the type of sequences to type (**1** for HIV-1, **2** for HIV-2).
 - **--output_type**: specify the output type, **xlsx** or **csv**.
 - **--fasta_file**: the directory for the fasta (or fasta.gz).
-- **--output_directory**: the directory for the output. A folder called "Comit_Output" will be created in this directory, storing the results.
-- **--disable_auto_rename**: Optional argument, **Y** to disable the creation of the new fasta file.
+- **--output_directory**: the directory for the output. A folder called "Comet_Output" will be created in this directory, storing the results.
+<br />
+
+It has the following optional arguments:
+- **--disable_auto_rename**: **Y** to disable the creation of the new fasta file.
+- **--split_per_subtype**: Single or multiple subtypes for splitting per subtype analysis, (e.g --split_by_subtype A or --split_by_subtype B C)
 <br />
 
 ***Example of usage:***
 <br />
 **[Windows]**
 <br />
-python typing_using_comet.py --hiv_type 1 --fasta_file unknown_seqs.fasta --output_directory C:\Users\results --output_type xlsx
+&ensp;&ensp;>python typing_using_comet.py --hiv_type 1 --fasta_file unknown_seqs.fasta --output_directory C:\Users\results --output_type xlsx  --split_per_subtype A B
 <br />
 
 **[MAC]**
 <br />
-python3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --output_directory C:\Users\results --output_type csv --disable_auto_rename Y
+&ensp;&ensp;>python3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --output_directory C:\Users\results --output_type csv --disable_auto_rename Y --split_per_subtype G
 
 ### Dependencies
 
