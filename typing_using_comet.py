@@ -2,47 +2,6 @@
 
 
 
-import subprocess
-import sys
-import importlib
-import importlib.metadata
-import platform
-
-def install_and_import(package, module=None, version=None):
-    if module is None:
-        module = package
-    try:
-        installed_version = importlib.metadata.version(package)
-        if version and installed_version != version:
-            print(f"Updating {package} to version {version}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", f"{package}=={version}"])
-    except importlib.metadata.PackageNotFoundError:
-        print(f"Installing {package}...")
-        if version:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", f"{package}=={version}"])
-        else:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-    finally:
-        # Import the module into the global namespace
-        globals()[module] = importlib.import_module(module)
-
-
-
-
-# List of required packages and their corresponding module names
-required_packages = [
-    ('pandas', None, '2.2.3'),
-    ('xlsxwriter', None, '3.2.0'),
-    ('requests', None, '2.28.1'),
-    ('selenium', None, '4.4.0'),
-    ('webdriver-manager', 'webdriver_manager', '4.0.2'),
-    ('biopython', 'Bio', '1.83'),
-]
-
-
-for package, module, version in required_packages:
-    install_and_import(package, module, version)
-
 
 # Now import the modules
 import getopt
@@ -63,23 +22,58 @@ from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 from io import StringIO
 from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-
+import argparse
 
 
 #CONSTANTS
-HELP = "\n _________________________________________________\n              | HIV Typing - COMET |                    \n _________________________________________________\n"
-RULES_1 = "Maximum size of each sequence (excluding fasta) 20000 characters.\nThe sequences must be in fasta format, you can compress the file with gzip, max 50MB (8Mo).\n"
-RULES_2 = "This script automatically renames the headers of the sequences to the assigned subtype. If you wish to disable this use --disable_auto_rename Y\nIt is advisable to run the following command in terminal before running the script:\npip install -r requirements.txt\n"
-EXAMPLE_WINDOWS = "\nExample of usage:\n[Windows]\npython typing_using_comet.py --hiv_type 1 --fasta_file unknown_seqs.fasta --output_directory C:\\Users\\andre\\results --output_type xlsx\n"
-EXAMPLE_MAC = "[MAC]\npython3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --output_directory C:\\Users\\andre\\results --output_type csv --disable_auto_rename Y\n"
-OPTIONS_EXPLAINED_1 = "Options:\n--hiv_type [int] : 1 for HIV1, 2 for HIV2"
-OPTIONS_EXPLAINED_2 = "--fasta_file [directory] : Directory of the fasta file (can be fasta.gz)"
-OPTIONS_EXPLAINED_3 = "--output_directory [directory] : Directory for the output"
-OPTIONS_EXPLAINED_4 = "--output_type [string] : \"xlsx\" for excel, \"csv\" for csv"
-OPTIONS_EXPLAINED_5 = "--disable_auto_rename [optional] : \"Y\" for yes, otherwise omit from the commandline call\n"
-ARGUMENT_OPTIONS = ["--hiv_type", "--fasta_file", "--output_directory", "--output_type", "--disable_auto_rename"]
+# RULES_1 = "Maximum size of each sequence (excluding fasta) 20000 characters.\nThe sequences must be in fasta format, you can compress the file with gzip, max 50MB (8Mo).\n"
+# RULES_2 = "This script automatically renames the headers of the sequences to the assigned subtype. If you wish to disable this use --disable_auto_rename Y\nIt is advisable to run the following command in terminal before running the script:\npip install -r requirements.txt\n"
+# EXAMPLE_WINDOWS = "\nExample of usage:\n[Windows]\npython typing_using_comet.py --hiv_type 1 --fasta_file unknown_seqs.fasta --output_directory C:\\Users\\results --output_type xlsx --split_per_subtype B G\n"
+# EXAMPLE_MAC = "[MAC]\npython3 typing_using_comet.py --hiv_type 2 --fasta_file unknown_seqs.fasta.gz --output_directory C:\\Users\\results --output_type csv --disable_auto_rename Y --split_per_subtype C\n"
+# OPTIONS_EXPLAINED_1 = "[int] : 1 for HIV1, 2 for HIV2"
+# OPTIONS_EXPLAINED_2 = "[directory] : Directory of the fasta file (can be fasta.gz)"
+# OPTIONS_EXPLAINED_3 = "[directory] : Directory for the output"
+# OPTIONS_EXPLAINED_4 = "[string] : \"xlsx\" for excel, \"csv\" for csv"
+# OPTIONS_EXPLAINED_5 = "[optional] : \"Y\" for yes, otherwise omit from the commandline call"
+# OPTIONS_EXPLAINED_6 = "[string] : Can be one type or multiple characters. Eg. --split_per_subtype G B\n"
+# ARGUMENT_OPTIONS = ["--hiv_type", "--fasta_file", "--output_directory", "--output_type", "--disable_auto_rename", "--split_per_subtype"]
+#
 
+HELP = """
+_________________________________________________
+              | HIV Typing - COMET |             
+_________________________________________________
+Description:
+  This script automatically renames the headers of the sequences to the assigned subtype.
+  If you wish to disable this use --disable_auto_rename
+  It is advisable to run the following command in terminal before running the script:
+    pip install -r requirements.txt.
+
+Example of usage:
+[WINDOWS]
+  python script.py --hiv_type 2 --fasta_file data.fasta --output_directory ./output --output_type xlsx --split_per_subtype A B C
+
+[MAC]
+  python script.py --hiv_type 2 --fasta_file data.fasta --output_directory ./output --output_type csv --disable_auto_rename Y --split_per_subtype G
+
+Required Arguments:
+  --hiv_type [int]                      Specify the HIV type (e.g., 1 for HIV1, 2 for HIV2).
+  --fasta_file [directory]              Directory of the fasta file (can be fasta.gz).
+  --output_directory [directory]        Directory to save output files.
+  --output_type [string]                Specify the output file type (e.g., csv or xlsx). Default is xlsx
+
+Optional Arguments:
+  --disable_auto_rename [string]        Disable automatic renaming of output files, Y for yes, otherwise omit from the commandline call
+  --split_per_subtype [string]          Single or multiple subtypes for splitting per subtype analysis, (e.g --split_by_subtype A or --split_by_subtype B C)
+
+Rules:
+  - Maximum size of each sequence (excluding fasta) 20000 characters.
+  - The sequences must be in fasta format, you can compress the file with gzip, max 50MB (8Mo)
+
+For more information, refer to the documentation.
+"""
 
 
 def wait_for_download_completion(download_path, timeout=60):
@@ -108,7 +102,18 @@ def read_fasta(filename: str):
     return records
 
 
-def main(hiv_type, output_type, fasta_file_path, download_directory, disable_auto_rename):
+def main(hiv_type, output_type, fasta_file_path, download_directory, disable_auto_rename, wanted_subtypes):
+
+    print("\n\n\tYour options:")
+    # Your main function implementation goes here
+    print("hiv_type:", hiv_type)
+    print("output_type:", output_type)
+    print("fasta_file:", fasta_file_path)
+    print("output_directory:", download_directory)
+    print("disable_auto_rename:", disable_auto_rename)
+    print("subtypes:", wanted_subtypes)
+
+
 
     # Ensure the output directory exists
     global df
@@ -232,7 +237,7 @@ def main(hiv_type, output_type, fasta_file_path, download_directory, disable_aut
 
                 # Save the DataFrame as an Excel file
                 df.to_excel(excel_file_path, index=False)
-                print(f"File saved as Excel to: {excel_file_path}")
+                print(f"File saved as Excel to: {excel_file_path}\n")
             elif output_type == "csv":
                 # Construct the output filename
                 csv_file_path = os.path.join(output_directory, f"{os.path.splitext(input_filename)[0]}_results.csv")
@@ -269,74 +274,71 @@ def main(hiv_type, output_type, fasta_file_path, download_directory, disable_aut
             SeqIO.write(records, output_handle, "fasta")
         print(f"Renamed headers, file found in {renamed_fasta_dir}\n")
 
-def main_main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["Help", "hiv_type=", "fasta_file=", "output_directory=", "output_type=", "disable_auto_rename="])
-    except getopt.GetoptError as err:
-        print(str(err))
-        sys.exit(2)
+    print(f"Filtering for {wanted_subtypes} subtypes\n")
+    filename = f"{os.path.splitext(input_filename)[0]}_typed.fasta".split(".")[0]
 
-    hiv_type = None
-    fasta_file = None
-    output_directory = None
-    output_type = None
-    disable_auto_rename = None
+    records = read_fasta(renamed_fasta_dir)
 
-    used_args = {"--hiv_type": None,
-                 "--fasta_file": None,
-                 "--output_directory": None,
-                 "--output_type": None,
-                 "--disable_auto_rename": None}
+    all_record_ids = []
 
-    for o, a in opts:
-        if o in ("-h", "--Help"):
-            print(HELP)
-            print(RULES_1)
-            print(RULES_2)
-            print(OPTIONS_EXPLAINED_1)
-            print(OPTIONS_EXPLAINED_2)
-            print(OPTIONS_EXPLAINED_3)
-            print(OPTIONS_EXPLAINED_4)
-            print(OPTIONS_EXPLAINED_5)
-            print(EXAMPLE_WINDOWS)
-            print(EXAMPLE_MAC)
-            sys.exit()
-        elif o == "--hiv_type":
-            hiv_type = a
-            used_args[o] = a
-        elif o == "--fasta_file":
-            fasta_file = a
-            used_args[o] = a
-        elif o == "--output_directory":
-            output_directory = a
-            used_args[o] = a
-        elif o == "--output_type":
-            output_type = a
-            used_args[o] = a
-        elif o == "--disable_auto_rename":
-            output_type = a
-            used_args[o] = a
-        else:
-            assert False, "unhandled option"
+    filtered_records = []
 
-    res = True
-    for key in used_args.keys():
-        if used_args[key] is None and key != "--disable_auto_rename":
-            print(f"{key} argument is missing.")
-            res = False
+    for record in records:
+        for wanted_subtype in wanted_subtypes:
+            if wanted_subtype == record.id.split(".")[0]:
+                wanted_record = SeqRecord(
+                    Seq(f"{record.seq}"),
+                    id=record.id)
+                filtered_records.append(wanted_record)
+        all_record_ids.append(record.id.split(".")[0])
 
-    if res == True:
-        main(hiv_type, output_type, fasta_file, output_directory, disable_auto_rename)
+    not_in_identified = [wanted_subtype for wanted_subtype in wanted_subtypes if wanted_subtype not in all_record_ids]
+
+    kept_subtypes = list(set(wanted_subtypes) - set(not_in_identified))
+
+    if len(not_in_identified) == 0:
+        print("All wanted subtypes are present at least once in the filtered file.\n")
     else:
-        return
+        print(f"Subtypes {set(not_in_identified)} are not present in the filtered file.\n")
 
+    write_result = SeqIO.write(filtered_records, os.path.join(output_directory, f"{filename}_filtered.fasta"), "fasta")
+    print(f"Filtered fasta written with {kept_subtypes} subtypes.\nFile found in: ",  os.path.join(output_directory, f"{filename}_filtered.fasta\n"))
+
+
+def main_main():
+    # Check if help was requested before parsing arguments
+    if '-h' in sys.argv or '--Help' in sys.argv:
+        # Display your custom help messages
+        print(HELP)
+        sys.exit()
+
+    parser = argparse.ArgumentParser(description='Process HIV sequence data.', add_help=False)
+
+    # Required arguments
+    parser.add_argument('--hiv_type', required=True, help='Specify the HIV type.')
+    parser.add_argument('--fasta_file', required=True, help='Path to the input FASTA file.')
+    parser.add_argument('--output_directory', required=True, help='Directory to save output files.')
+    parser.add_argument('--output_type', required=True, help='Specify the output file type.')
+
+    # Optional arguments
+    parser.add_argument('--disable_auto_rename', action='store_true', help='Disable automatic renaming of output files.')
+    parser.add_argument('--split_per_subtype', nargs='+', help='List of subtypes for splitting per subtype analysis.')
+
+    # Custom help option
+    parser.add_argument('-h', '--Help', action='store_true', help='Show this help message and exit.')
+
+    args = parser.parse_args()
+
+    # Assign arguments to variables
+    hiv_type = args.hiv_type
+    fasta_file = args.fasta_file
+    output_directory = args.output_directory
+    output_type = args.output_type
+    disable_auto_rename = args.disable_auto_rename
+    subtypes = args.split_per_subtype if args.split_per_subtype else []
+
+    # Call the main function with the parsed arguments
+    main(hiv_type, output_type, fasta_file, output_directory, disable_auto_rename, subtypes)
 
 if __name__ == "__main__":
     main_main()
-
-
-
-fasta_file_path_ = r"C:\Users\andre\OneDrive - IHMT-NOVA\helping_ihmt\victor_pim\HIV_Tools\Comet_for_Subtyping\files_for_testing\HIV2_B_seqs.fasta"
-download_directory_ = r"C:\Users\andre\OneDrive - IHMT-NOVA\helping_ihmt\victor_pim\HIV_Tools\Comet_for_Subtyping"
-
-# main(hiv_type=2, output_type="xlsx", fasta_file_path=fasta_file_path_, download_directory=download_directory_, disable_auto_rename="N")
